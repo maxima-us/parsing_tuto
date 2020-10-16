@@ -1,4 +1,4 @@
-open Lwt;;
+(* open Lwt;; *)
 open Endpoints.Public;;
 
 let qargs = Instrument.make_req_args ~symbol:"XXBTZUSD" in
@@ -13,13 +13,15 @@ Ohlc.print_parsed_item (List.nth body 1);;
 
 let get_instrument =
   let open Instrument in 
-let i_qargs = make_req_args ~symbol:"XXBTZUSD" in
-(* let%lwt body = Instrument.fetch i_qargs in Instrument.print_parsed body;; *)
-fetch i_qargs >>= fun x -> Lwt_io.printf (let Price h = x.h in h)
+  let i_qargs = make_req_args ~symbol:"XXBTZUSD" in
+  (* let%lwt body = Instrument.fetch i_qargs in Instrument.print_parsed body;; *)
+  fetch i_qargs >>= fun x -> Lwt_io.printf "price : %f\n" (let Price h = x.h in h)
 
 let get_ohlc =
-let o_qargs = Ohlc.make_req_args ~symbol:"XXBTZUSD" ~interval:M60 in
-let%lwt body = Ohlc.fetch o_qargs in Ohlc.print_parsed_item (List.nth body 1);;
+  let open Ohlc in
+  let o_qargs = Ohlc.make_req_args ~symbol:"XXBTZUSD" ~interval:M60 in
+  (* let%lwt body = Ohlc.fetch o_qargs in Ohlc.print_parsed_item (List.nth body 1);; *)
+  fetch o_qargs >>= fun x -> Lwt_io.printf "time of first candle : %i\n"  (let item = List.nth x 1 in let Timestamp t = item.utcTime in t)
 
 let joins = Lwt.join([get_instrument; get_ohlc]);;
 
