@@ -1,0 +1,4 @@
+(library 
+ (name atd_ohlc)
+ (libraries atdgen-runtime)
+)

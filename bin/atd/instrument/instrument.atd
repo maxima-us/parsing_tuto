@@ -1,0 +1,30 @@
+type date = {
+    year: int
+    ; month: int
+    ; day: int
+}
+
+
+type price = [Price of float]<ocaml repr="classic">
+type vol = [Vol of float]<ocaml repr="classic">
+type ask = [Ask of (price * vol)]<ocaml repr="classic">
+
+type error = string list
+
+(* ABOVE TYPES ARE NOT NEEDED, WERE JUST TO PLAY AROUND *)
+
+type strnum = string wrap <ocaml t="Float.t" wrap="Float.of_string" unwrap="Float.to_string">
+(* <ocaml valid = "fun s -> float_of_string s > 0."> *)
+
+
+type expected = { 
+      ask <json name = "a">: (strnum * strnum * strnum)
+    ; bid <json name = "b">: (strnum * strnum * strnum)
+    ; last <json name = "c">: (strnum * strnum)
+    ; vol <json name = "v">: (strnum * strnum)
+    ; vwap <json name = "p">: (strnum * strnum)
+    ; trades <json name = "t">: (int * int)
+    ; low <json name = "l">: (strnum * strnum)
+    ; high <json name = "h">: (strnum * strnum)
+    ; o <json name = "o">: strnum
+}

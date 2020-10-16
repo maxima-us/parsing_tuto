@@ -1,0 +1,21 @@
+
+type strnum = string wrap <ocaml t="Float.t" wrap="Float.of_string" unwrap="Float.to_string">
+(* <ocaml valid = "fun s -> float_of_string s > 0."> *)
+
+
+type expected_instrument = { 
+      ask <json name = "a">: (strnum * strnum * strnum)
+    ; bid <json name = "b">: (strnum * strnum * strnum)
+    ; last <json name = "c">: (strnum * strnum)
+    ; vol <json name = "v">: (strnum * strnum)
+    ; vwap <json name = "p">: (strnum * strnum)
+    ; trades <json name = "t">: (int * int)
+    ; low <json name = "l">: (strnum * strnum)
+    ; high <json name = "h">: (strnum * strnum)
+    ; o <json name = "o">: strnum
+}
+
+
+type ohlc_item = (int * strnum * strnum * strnum * strnum * strnum * strnum * int)
+
+type expected_ohlc = ohlc_item list

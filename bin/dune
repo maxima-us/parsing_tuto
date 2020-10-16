@@ -1,0 +1,15 @@
+(executable
+ (public_name parsing_tuto)
+ (name main)
+ (libraries 
+    parsing_tuto
+    yojson
+    core
+    lwt
+    str
+    cohttp-lwt-unix
+    atd_instrument
+    endpoints
+    lwt.unix
+  )
+)

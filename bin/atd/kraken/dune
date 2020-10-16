@@ -1,0 +1,4 @@
+(library
+ (name atd_kraken)
+ (libraries atdgen-runtime)
+)

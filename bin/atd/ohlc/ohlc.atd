@@ -1,0 +1,10 @@
+type strnum = string wrap <ocaml t="Float.t" wrap="Float.of_string" unwrap="Float.to_string">
+
+(* example of expected json
+{"XXBTZUSD": [[1599040800,"11753.3","11753.3","11528.0","11581.0","11611.3","328.34914695",1410],]
+"last":1601625600}
+*)
+
+type ohlc_item = (int * strnum * strnum * strnum * strnum * strnum * strnum * int)
+
+type expected = ohlc_item list
