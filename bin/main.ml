@@ -23,6 +23,12 @@ let get_ohlc =
   (* let%lwt body = Ohlc.fetch o_qargs in Ohlc.print_parsed_item (List.nth body 1);; *)
   fetch o_qargs >>= fun x -> Lwt_io.printf "time of first candle : %i\n"  (let item = List.nth x 1 in let Timestamp t = item.utcTime in t)
 
-let joins = Lwt.join([get_instrument; get_ohlc]);;
+
+let get_orderbook =
+  let open OrderBook in
+  let b_args = OrderBook.make_req_args ~symbol:"XXBTZUSD" ~depth:100 in
+  fetch b_args >>= fun x -> Lwt_io.printf "first ask price : %f\n" (let Ask (Price p, Volume _) = List.nth x.asks 1 in p)
+
+let joins = Lwt.join([get_instrument; get_ohlc; get_orderbook]);;
 
 let _ = Lwt_main.run joins

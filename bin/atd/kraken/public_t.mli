@@ -14,6 +14,19 @@ type ohlc_item = (
   * int
 )
 
+type bid_item = (strnum * strnum * int)
+
+type expected_bid_list = bid_item list
+
+type ask_item = (strnum * strnum * int)
+
+type expected_ask_list = ask_item list
+
+type expected_orderbook = {
+  asks: expected_ask_list;
+  bids: expected_bid_list
+}
+
 type expected_ohlc = ohlc_item list
 
 type expected_instrument = {

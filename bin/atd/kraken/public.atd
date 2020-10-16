@@ -3,6 +3,13 @@ type strnum = string wrap <ocaml t="Float.t" wrap="Float.of_string" unwrap="Floa
 (* <ocaml valid = "fun s -> float_of_string s > 0."> *)
 
 
+
+
+(* ============================================================ *)
+(* INSTRUMENT *)
+(* ============================================================ *)
+
+
 type expected_instrument = { 
       ask <json name = "a">: (strnum * strnum * strnum)
     ; bid <json name = "b">: (strnum * strnum * strnum)
@@ -16,6 +23,33 @@ type expected_instrument = {
 }
 
 
+
+
+(* ============================================================ *)
+(* OHLC *)
+(* ============================================================ *)
+
+
 type ohlc_item = (int * strnum * strnum * strnum * strnum * strnum * strnum * int)
 
 type expected_ohlc = ohlc_item list
+
+
+
+
+(* ============================================================ *)
+(* ORDERBOOK *)
+(* ============================================================ *)
+
+
+type ask_item = (strnum * strnum * int)
+type bid_item = (strnum * strnum * int)
+
+type expected_ask_list = ask_item list
+type expected_bid_list = bid_item list
+
+
+type expected_orderbook = {
+  asks: expected_ask_list
+  ; bids: expected_bid_list
+}

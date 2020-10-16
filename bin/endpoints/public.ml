@@ -26,6 +26,7 @@ struct
   type volume = Volume of float
   type count = Count of int
   type timestamp = Timestamp of int
+  type depth = Depth of int
 
   type ask = Ask of (price * volume)
   type bid = Bid of (price * volume)
@@ -181,94 +182,191 @@ end
 
 
 module Ohlc = struct
-include Types;;
-include Lwt;;
-include Cohttp_lwt_unix;;
-include Atd_kraken.Public_j;;
-include Atd_kraken.Public_t;;
+  include Types;;
+  include Lwt;;
+  include Cohttp_lwt_unix;;
+  include Atd_kraken.Public_j;;
+  include Atd_kraken.Public_t;;
 
 
-type response = {
-  error: error
-  ; result: expected_ohlc option
-}
-
-
-type q_args = {
-  symbol: pair
-  ; interval: interval
-}
-
-type parsed_item = {
-  symbol: pair
-  ; utcTime: timestamp
-  ; o: price
-  ; h: price
-  ; l: price
-  ; c: price
-  ; volume: volume
-  ; trdCount: count 
-}
-
-type parsed = parsed_item list
-
-
-(* PARSE A SINGLE ITEM // RECURSION ON LIST TO PARSE EVERY ITEM *)
-let parse_item symbol data = 
-  let (_time, _o, _h, _l, _c, _vwap, _vol, _cnt) = data in {
-    symbol = Pair symbol 
-    ; utcTime = Timestamp _time
-    ; o = Price _o
-    ; h = Price _h
-    ; l = Price _l
-    ; c = Price _c
-    ; volume = Volume _vol
-    ; trdCount = Count _cnt
+  type response = {
+    error: error
+    ; result: expected_ohlc option
   }
 
 
-let parse symbol data = 
-  let rec iter (acc_parse: parsed) (data: expected_ohlc) : parsed =
-  match data with
-  | [] -> acc_parse
-  | hd :: t -> iter (acc_parse @ [parse_item symbol hd]) t
-  in iter [] data
+  type q_args = {
+    symbol: pair
+    ; interval: interval
+  }
 
-let make_req_uri (args: q_args) = 
-  let Pair s = args.symbol in
-  let t = interval_to_int args.interval in
-  let endpoint = "https://api.kraken.com/0/public/OHLC" in
-    Printf.sprintf "%s?pair=%s&interval=%i" endpoint s t
+  type parsed_item = {
+    symbol: pair
+    ; utcTime: timestamp
+    ; o: price
+    ; h: price
+    ; l: price
+    ; c: price
+    ; volume: volume
+    ; trdCount: count 
+  }
+
+  type parsed = parsed_item list
+
+
+  (* PARSE A SINGLE ITEM // RECURSION ON LIST TO PARSE EVERY ITEM *)
+  let parse_item symbol data = 
+    let (_time, _o, _h, _l, _c, _vwap, _vol, _cnt) = data in {
+      symbol = Pair symbol 
+      ; utcTime = Timestamp _time
+      ; o = Price _o
+      ; h = Price _h
+      ; l = Price _l
+      ; c = Price _c
+      ; volume = Volume _vol
+      ; trdCount = Count _cnt
+    }
+
+
+  let parse symbol data = 
+    let rec iter (acc_parse: parsed) (data: expected_ohlc) : parsed =
+    match data with
+    | [] -> acc_parse
+    | hd :: t -> iter (acc_parse @ [parse_item symbol hd]) t
+    in iter [] data
+
+  let make_req_uri (args: q_args) = 
+    let Pair s = args.symbol in
+    let t = interval_to_int args.interval in
+    let endpoint = "https://api.kraken.com/0/public/OHLC" in
+      Printf.sprintf "%s?pair=%s&interval=%i" endpoint s t
+      |> Uri.of_string
+
+
+  let make_req_args ~symbol ~interval = {
+    symbol = Pair symbol
+    ; interval = interval
+
+  }
+
+
+  let print_parsed_item (parsed: parsed_item) : unit = 
+    Printf.printf "Symbol: %s - " (let Pair x = parsed.symbol in x)
+    ; Printf.printf "Time: %i - " (let Timestamp x = parsed.utcTime in x)
+    ; Printf.printf "Open: %f - " (let Price x = parsed.o in x)
+    ; Printf.printf "High: %f - " (let Price x = parsed.h in x)
+    ; Printf.printf "Low: %f - " (let Price x = parsed.l in x)
+    ; Printf.printf "Close: %f - \n" (let Price x = parsed.c in x)
+
+
+  let fetch (args: q_args) = 
+    let uri = make_req_uri args in
+    Client.get uri >>= fun (_, body) ->
+      let x = body |> Cohttp_lwt.Body.to_string in x
+      >|= fun x ->
+        Yojson.Basic.from_string x
+        |> nested ["result"; let Pair x = args.symbol in x]
+        |> Yojson.Basic.to_string
+        |> expected_ohlc_of_string
+        |> parse (let Pair x = args.symbol in x)
+
+  ;
+end
+
+
+(*============================================================*)
+(* ORDERBOOK *)
+(*============================================================*)
+
+
+module OrderBook = struct
+  include Types;;
+  include Lwt;;
+  include Cohttp_lwt_unix;;
+  include Atd_kraken.Public_j;;
+  include Atd_kraken.Public_t;;
+  include Unix;;
+
+
+  type response = {
+    error: error
+    ; result: expected_orderbook option
+  }
+
+
+  type q_args = {
+    symbol: pair
+    ; depth: depth
+  }
+
+
+  type parsed = {
+    symbol: pair 
+    ; utcTime: timestamp
+    ; asks: ask list
+    ; bids: bid list
+  }
+
+  let parse_ask_item ask_item = 
+    let (_price, _volume, _time) = ask_item in
+    Ask (Price _price, Volume _volume)
+    
+
+  let parse_bid_item bid_item = 
+    let (_price, _volume, _time) = bid_item in
+    Bid (Price _price, Volume _volume)
+
+
+  (* let parse_asks data =
+    let rec iter acc_parse data =
+      match data with
+      | [] -> acc_parse
+      | hd :: tl -> iter (acc_parse @ [parse_ask_item hd]) tl
+    in iter [] data.asks *)
+
+    let parse_asks (data:expected_orderbook) = List.map parse_ask_item data.asks
+
+  
+    (* let parse_bids data =
+  let rec iter (acc_parse: bid list) (data: expected_bid_list) : bid list =
+    match data with
+    | [] -> acc_parse
+    | hd :: tl -> iter (acc_parse @ [parse_bid_item hd]) tl
+  in iter [] data.bids *)
+
+    let parse_bids (data:expected_orderbook) = List.map parse_bid_item data.bids
+
+
+  let parse symbol data = {
+    symbol = Pair symbol
+    ; utcTime = Timestamp 1
+    ; asks = parse_asks data
+    ; bids = parse_bids data
+  }
+
+
+  let make_req_uri (args: q_args) = 
+    let Pair s = args.symbol in
+    let Depth c = args.depth in
+    let endpoint = "https://api.kraken.com/0/public/Depth" in
+    Printf.sprintf "%s?pair=%s&count=%i" endpoint s c
     |> Uri.of_string
 
 
-let make_req_args ~symbol ~interval = {
-  symbol = Pair symbol
-  ; interval = interval
+  let make_req_args ~symbol ~depth = {
+    symbol = Pair symbol
+    ; depth = Depth depth
+  }
 
-}
-
-
-let print_parsed_item (parsed: parsed_item) : unit = 
-  Printf.printf "Symbol: %s - " (let Pair x = parsed.symbol in x)
-  ; Printf.printf "Time: %i - " (let Timestamp x = parsed.utcTime in x)
-  ; Printf.printf "Open: %f - " (let Price x = parsed.o in x)
-  ; Printf.printf "High: %f - " (let Price x = parsed.h in x)
-  ; Printf.printf "Low: %f - " (let Price x = parsed.l in x)
-  ; Printf.printf "Close: %f - \n" (let Price x = parsed.c in x)
-
-
-let fetch (args: q_args) = 
-  let uri = make_req_uri args in
-  Client.get uri >>= fun (_, body) ->
-    let x = body |> Cohttp_lwt.Body.to_string in x
-    >|= fun x ->
-      Yojson.Basic.from_string x
-      |> nested ["result"; let Pair x = args.symbol in x]
-      |> Yojson.Basic.to_string
-      |> expected_ohlc_of_string
-      |> parse (let Pair x = args.symbol in x)
-
+  let fetch (args: q_args) = 
+    let uri = make_req_uri args in
+    Client.get uri >>= fun (_, body) ->
+      let x = body |> Cohttp_lwt.Body.to_string in x
+      >|= fun x ->
+        Yojson.Basic.from_string x
+        |> nested ["result"; let Pair x = args.symbol in x]
+        |> Yojson.Basic.to_string
+        |> expected_orderbook_of_string
+        |> parse (let Pair x = args.symbol in x)
 ;
 end
-
