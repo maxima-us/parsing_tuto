@@ -3,7 +3,11 @@
 
 type strnum = Public_t.strnum
 
+type trade_item = Public_t.trade_item
+
 type ohlc_item = Public_t.ohlc_item
+
+type expected_trades = Public_t.expected_trades
 
 type bid_item = Public_t.bid_item
 
@@ -52,6 +56,26 @@ val strnum_of_string :
   string -> strnum
   (** Deserialize JSON data of type {!strnum}. *)
 
+val write_trade_item :
+  Bi_outbuf.t -> trade_item -> unit
+  (** Output a JSON value of type {!trade_item}. *)
+
+val string_of_trade_item :
+  ?len:int -> trade_item -> string
+  (** Serialize a value of type {!trade_item}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_trade_item :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> trade_item
+  (** Input JSON data of type {!trade_item}. *)
+
+val trade_item_of_string :
+  string -> trade_item
+  (** Deserialize JSON data of type {!trade_item}. *)
+
 val write_ohlc_item :
   Bi_outbuf.t -> ohlc_item -> unit
   (** Output a JSON value of type {!ohlc_item}. *)
@@ -71,6 +95,26 @@ val read_ohlc_item :
 val ohlc_item_of_string :
   string -> ohlc_item
   (** Deserialize JSON data of type {!ohlc_item}. *)
+
+val write_expected_trades :
+  Bi_outbuf.t -> expected_trades -> unit
+  (** Output a JSON value of type {!expected_trades}. *)
+
+val string_of_expected_trades :
+  ?len:int -> expected_trades -> string
+  (** Serialize a value of type {!expected_trades}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_expected_trades :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> expected_trades
+  (** Input JSON data of type {!expected_trades}. *)
+
+val expected_trades_of_string :
+  string -> expected_trades
+  (** Deserialize JSON data of type {!expected_trades}. *)
 
 val write_bid_item :
   Bi_outbuf.t -> bid_item -> unit

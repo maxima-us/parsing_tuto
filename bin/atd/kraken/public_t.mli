@@ -3,6 +3,8 @@
 
 type strnum = Float.t
 
+type trade_item = (strnum * strnum * float * string * string * string)
+
 type ohlc_item = (
     int
   * strnum
@@ -13,6 +15,8 @@ type ohlc_item = (
   * strnum
   * int
 )
+
+type expected_trades = trade_item list
 
 type bid_item = (strnum * strnum * int)
 

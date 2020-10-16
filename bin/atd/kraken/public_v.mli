@@ -3,7 +3,11 @@
 
 type strnum = Public_t.strnum
 
+type trade_item = Public_t.trade_item
+
 type ohlc_item = Public_t.ohlc_item
+
+type expected_trades = Public_t.expected_trades
 
 type bid_item = Public_t.bid_item
 
@@ -36,9 +40,17 @@ val validate_strnum :
   Atdgen_runtime.Util.Validation.path -> strnum -> Atdgen_runtime.Util.Validation.error option
   (** Validate a value of type {!strnum}. *)
 
+val validate_trade_item :
+  Atdgen_runtime.Util.Validation.path -> trade_item -> Atdgen_runtime.Util.Validation.error option
+  (** Validate a value of type {!trade_item}. *)
+
 val validate_ohlc_item :
   Atdgen_runtime.Util.Validation.path -> ohlc_item -> Atdgen_runtime.Util.Validation.error option
   (** Validate a value of type {!ohlc_item}. *)
+
+val validate_expected_trades :
+  Atdgen_runtime.Util.Validation.path -> expected_trades -> Atdgen_runtime.Util.Validation.error option
+  (** Validate a value of type {!expected_trades}. *)
 
 val validate_bid_item :
   Atdgen_runtime.Util.Validation.path -> bid_item -> Atdgen_runtime.Util.Validation.error option

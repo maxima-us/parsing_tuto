@@ -3,7 +3,11 @@
 
 type strnum = Public_t.strnum
 
+type trade_item = Public_t.trade_item
+
 type ohlc_item = Public_t.ohlc_item
+
+type expected_trades = Public_t.expected_trades
 
 type bid_item = Public_t.bid_item
 
@@ -63,6 +67,140 @@ let read_strnum = (
 )
 let strnum_of_string s =
   read_strnum (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+let write_trade_item = (
+  fun ob x ->
+    Bi_outbuf.add_char ob '(';
+    (let x, _, _, _, _, _ = x in
+    (
+      write_strnum
+    ) ob x
+    );
+    Bi_outbuf.add_char ob ',';
+    (let _, x, _, _, _, _ = x in
+    (
+      write_strnum
+    ) ob x
+    );
+    Bi_outbuf.add_char ob ',';
+    (let _, _, x, _, _, _ = x in
+    (
+      Yojson.Safe.write_float
+    ) ob x
+    );
+    Bi_outbuf.add_char ob ',';
+    (let _, _, _, x, _, _ = x in
+    (
+      Yojson.Safe.write_string
+    ) ob x
+    );
+    Bi_outbuf.add_char ob ',';
+    (let _, _, _, _, x, _ = x in
+    (
+      Yojson.Safe.write_string
+    ) ob x
+    );
+    Bi_outbuf.add_char ob ',';
+    (let _, _, _, _, _, x = x in
+    (
+      Yojson.Safe.write_string
+    ) ob x
+    );
+    Bi_outbuf.add_char ob ')';
+)
+let string_of_trade_item ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write_trade_item ob x;
+  Bi_outbuf.contents ob
+let read_trade_item = (
+  fun p lb ->
+    Yojson.Safe.read_space p lb;
+    let std_tuple = Yojson.Safe.start_any_tuple p lb in
+    let len = ref 0 in
+    let end_of_tuple = ref false in
+    (try
+      let x0 =
+        let x =
+          (
+            read_strnum
+          ) p lb
+        in
+        incr len;
+        Yojson.Safe.read_space p lb;
+        Yojson.Safe.read_tuple_sep2 p std_tuple lb;
+        x
+      in
+      let x1 =
+        let x =
+          (
+            read_strnum
+          ) p lb
+        in
+        incr len;
+        Yojson.Safe.read_space p lb;
+        Yojson.Safe.read_tuple_sep2 p std_tuple lb;
+        x
+      in
+      let x2 =
+        let x =
+          (
+            Atdgen_runtime.Oj_run.read_number
+          ) p lb
+        in
+        incr len;
+        Yojson.Safe.read_space p lb;
+        Yojson.Safe.read_tuple_sep2 p std_tuple lb;
+        x
+      in
+      let x3 =
+        let x =
+          (
+            Atdgen_runtime.Oj_run.read_string
+          ) p lb
+        in
+        incr len;
+        Yojson.Safe.read_space p lb;
+        Yojson.Safe.read_tuple_sep2 p std_tuple lb;
+        x
+      in
+      let x4 =
+        let x =
+          (
+            Atdgen_runtime.Oj_run.read_string
+          ) p lb
+        in
+        incr len;
+        Yojson.Safe.read_space p lb;
+        Yojson.Safe.read_tuple_sep2 p std_tuple lb;
+        x
+      in
+      let x5 =
+        let x =
+          (
+            Atdgen_runtime.Oj_run.read_string
+          ) p lb
+        in
+        incr len;
+        (try
+          Yojson.Safe.read_space p lb;
+          Yojson.Safe.read_tuple_sep2 p std_tuple lb;
+        with Yojson.End_of_tuple -> end_of_tuple := true);
+        x
+      in
+      if not !end_of_tuple then (
+        try
+          while true do
+            Yojson.Safe.skip_json p lb;
+            Yojson.Safe.read_space p lb;
+            Yojson.Safe.read_tuple_sep2 p std_tuple lb;
+          done
+        with Yojson.End_of_tuple -> ()
+      );
+      (x0, x1, x2, x3, x4, x5)
+    with Yojson.End_of_tuple ->
+      Atdgen_runtime.Oj_run.missing_tuple_fields p !len [ 0; 1; 2; 3; 4; 5 ]);
+)
+let trade_item_of_string s =
+  read_trade_item (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write_ohlc_item = (
   fun ob x ->
     Bi_outbuf.add_char ob '(';
@@ -231,6 +369,34 @@ let read_ohlc_item = (
 )
 let ohlc_item_of_string s =
   read_ohlc_item (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+let write__5 = (
+  Atdgen_runtime.Oj_run.write_list (
+    write_trade_item
+  )
+)
+let string_of__5 ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write__5 ob x;
+  Bi_outbuf.contents ob
+let read__5 = (
+  Atdgen_runtime.Oj_run.read_list (
+    read_trade_item
+  )
+)
+let _5_of_string s =
+  read__5 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+let write_expected_trades = (
+  write__5
+)
+let string_of_expected_trades ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write_expected_trades ob x;
+  Bi_outbuf.contents ob
+let read_expected_trades = (
+  read__5
+)
+let expected_trades_of_string s =
+  read_expected_trades (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write_bid_item = (
   fun ob x ->
     Bi_outbuf.add_char ob '(';

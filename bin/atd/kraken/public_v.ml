@@ -3,7 +3,11 @@
 
 type strnum = Public_t.strnum
 
+type trade_item = Public_t.trade_item
+
 type ohlc_item = Public_t.ohlc_item
+
+type expected_trades = Public_t.expected_trades
 
 type bid_item = Public_t.bid_item
 
@@ -38,8 +42,17 @@ let validate__1 = (
 let validate_strnum = (
   validate__1
 )
+let validate_trade_item = (
+  fun _ _ -> None
+)
 let validate_ohlc_item = (
   fun _ _ -> None
+)
+let validate__5 = (
+  fun _ _ -> None
+)
+let validate_expected_trades = (
+  validate__5
 )
 let validate_bid_item = (
   fun _ _ -> None

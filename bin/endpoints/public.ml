@@ -25,14 +25,18 @@ struct
   type price = Price of float
   type volume = Volume of float
   type count = Count of int
-  type timestamp = Timestamp of int
+  type timestamp = Timestamp of float 
   type depth = Depth of int
 
   type ask = Ask of (price * volume)
   type bid = Bid of (price * volume)
 
+  type ordSide = Buy | Sell
+  type ordType = Market | Limit
+
   type error = Error of string list option
-  
+ 
+
   let nested (ls: string list) (body: Yojson.Basic.t) =
     let open Yojson.Basic.Util in
     let rec iter (len: int) (json: Yojson.Basic.t) (depth: int) = 
@@ -218,7 +222,7 @@ module Ohlc = struct
   let parse_item symbol data = 
     let (_time, _o, _h, _l, _c, _vwap, _vol, _cnt) = data in {
       symbol = Pair symbol 
-      ; utcTime = Timestamp _time
+      ; utcTime = Timestamp (float_of_int _time)
       ; o = Price _o
       ; h = Price _h
       ; l = Price _l
@@ -252,7 +256,7 @@ module Ohlc = struct
 
   let print_parsed_item (parsed: parsed_item) : unit = 
     Printf.printf "Symbol: %s - " (let Pair x = parsed.symbol in x)
-    ; Printf.printf "Time: %i - " (let Timestamp x = parsed.utcTime in x)
+    ; Printf.printf "Time: %f - " (let Timestamp x = parsed.utcTime in x)
     ; Printf.printf "Open: %f - " (let Price x = parsed.o in x)
     ; Printf.printf "High: %f - " (let Price x = parsed.h in x)
     ; Printf.printf "Low: %f - " (let Price x = parsed.l in x)
@@ -324,7 +328,7 @@ module OrderBook = struct
       | hd :: tl -> iter (acc_parse @ [parse_ask_item hd]) tl
     in iter [] data.asks *)
 
-    let parse_asks (data:expected_orderbook) = List.map parse_ask_item data.asks
+    let parse_asks (data: expected_orderbook) = List.map parse_ask_item data.asks
 
   
     (* let parse_bids data =
@@ -339,7 +343,7 @@ module OrderBook = struct
 
   let parse symbol data = {
     symbol = Pair symbol
-    ; utcTime = Timestamp 1
+    ; utcTime = Timestamp 1.0
     ; asks = parse_asks data
     ; bids = parse_bids data
   }
@@ -369,4 +373,94 @@ module OrderBook = struct
         |> expected_orderbook_of_string
         |> parse (let Pair x = args.symbol in x)
 ;
+end
+
+
+
+
+(*============================================================*)
+(* TRADES *)
+(*============================================================*)
+
+
+module Trades = struct
+  include Types;;
+  include Lwt;;
+  include Cohttp_lwt_unix;;
+  include Atd_kraken.Public_j;;
+  include Atd_kraken.Public_t;;
+  include Unix;;
+
+
+
+
+  type q_args = {
+    symbol: pair
+    ; since: timestamp option
+  }
+
+
+
+  type parsed_item = {
+    symbol: pair
+    ; orderID: int option
+    ; trdMatchID: int option
+    ; transactTime: timestamp
+    ; side: ordSide
+    ; ordType: ordType
+    ; avgPx: price
+    ; cumQty: volume
+    ; grossTradeAmt: float
+    ; text: string option
+  }
+
+
+  type parsed = parsed_item list
+
+
+  let parse_item symbol data = 
+    let (_price, _volume, _time, _side, _type, _text) = data in {
+      symbol = Pair symbol
+      ; orderID = None
+      ; trdMatchID = None
+      ; transactTime = Timestamp _time
+      ; side = if _side = "buy" then Buy else Sell
+      ; ordType = Market
+      ; avgPx = Price _price
+      ; cumQty = Volume _volume
+      ; grossTradeAmt = _price *. _volume
+      ; text = None
+    };;
+
+  let parse symbol data = List.map (parse_item symbol) data
+
+  let make_req_uri (args: q_args) = 
+    let Pair s = args.symbol in
+    let Timestamp t = match args.since with
+      | None -> Timestamp (-1.0)
+      | Some x -> x
+  in let endpoint = "https://api.kraken.com/0/public/Trades" in
+  Printf.sprintf "%s?pair=%s&since=%i" endpoint s (int_of_float t)
+  |> Uri.of_string
+
+
+  let make_req_args ~symbol ~since = {
+    symbol = Pair symbol
+    ; since = match since with
+      | Some x -> Some (Timestamp x)
+      | None -> None
+  }
+  
+
+  let fetch (args: q_args) = 
+    let uri = make_req_uri args in
+    Client.get uri >>= fun (_, body) ->
+      let x = body |> Cohttp_lwt.Body.to_string in x
+      >|= fun x ->
+        Yojson.Basic.from_string x
+        |> nested ["result"; let Pair x = args.symbol in x]
+        |> Yojson.Basic.to_string
+        |> expected_trades_of_string
+        |> parse (let Pair x = args.symbol in x)
+
 end
