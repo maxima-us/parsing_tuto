@@ -3,8 +3,6 @@ type strnum = string wrap <ocaml t="Float.t" wrap="Float.of_string" unwrap="Floa
 (* <ocaml valid = "fun s -> float_of_string s > 0."> *)
 
 
-
-
 (* ============================================================ *)
 (* INSTRUMENT *)
 (* ============================================================ *)
@@ -61,6 +59,7 @@ type expected_orderbook = {
 (* TRADES *)
 (* ============================================================ *)
 
+
 (* SAMPLE RESPONSE
 {
   "XXBTZUSD":[
@@ -79,3 +78,62 @@ type oType = M | L *)
 type trade_item = (strnum * strnum * float * string * string * string)
 
 type expected_trades = trade_item list
+
+
+
+(* ============================================================ *) 
+(* SYMBOLS *)
+(* ============================================================ *) 
+
+
+(* SAMPLE RESPONSE *)
+
+(* (example of one key, full response is dict)
+  "ADAETH":{
+    "altname":"ADAETH",
+    "wsname":"ADA\\/ETH",
+    "aclass_base":"currency",
+    "base":"ADA",
+    "aclass_quote":"currency",
+    "quote":"XETH",
+    "lot":"unit",
+    "pair_decimals":7,
+    "lot_decimals":8,
+    "lot_multiplier":1,
+    "leverage_buy":[2,3],
+    "leverage_sell":[2,3],
+    "fees":[[0,0.26],[50000,0.24],[100000,0.22],[250000,0.2],[500000,0.18],[1000000,0.16],[2500000,0.14],[5000000,0.12],[10000000,0.1]],
+    "fees_maker":[[0,0.16],[50000,0.14],[100000,0.12],[250000,0.1],[500000,0.08],[1000000,0.06],[2500000,0.04],[5000000,0.02],[10000000,0]],
+    "fee_volume_currency":"ZUSD",
+    "margin_call":80,
+    "margin_stop":40,
+    "ordermin":"50"
+  } *)
+
+
+type fee_item = (int * float)
+
+type symbol_item = {
+  ~altname: string
+  ; ~wsname : string
+  ; ~aclass_base: string
+  ; ~base: string
+  ; ~aclass_quote: string
+  ; ~quote: string
+  ; ~lot: string
+  ; ~pair_decimals: int
+  ; ~lot_decimals: int
+  ; ~lot_multiplier: int
+  ; ~leverage_buy: int list
+  ; ~leverage_sell: int list
+  ; ~fees: fee_item list
+  ; ~fees_maker: fee_item list
+  ; ~fee_volume_currency: string
+  ; ~margin_call: int
+  ; ~margin_stop: int
+  ; ?ordermin: string option
+}
+
+(* https://atd.readthedocs.io/en/latest/atdgen.html#association-lists *)
+
+type expected_symbols = (string * symbol_item) list <json repr="object">

@@ -22,6 +22,7 @@ struct
     | D1 -> 1440
 
   type pair = Pair of string
+  type asset = Asset of string
   type price = Price of float
   type volume = Volume of float
   type count = Count of int
@@ -462,5 +463,88 @@ module Trades = struct
         |> Yojson.Basic.to_string
         |> expected_trades_of_string
         |> parse (let Pair x = args.symbol in x)
+
+end
+
+
+
+
+(*============================================================*)
+(* SYMBOLS *)
+(*============================================================*)
+
+
+module Symbols = struct
+  include Types;;
+  include Lwt;;
+  include Cohttp_lwt_unix;;
+  include Atd_kraken.Public_j;;
+  include Atd_kraken.Public_t;;
+  include Unix;;
+
+
+  type parsed_item = {
+    exchange_name: string
+    ; ws_name: string
+    ; base: string
+    ; quote: string
+    ; volume_decimals: int
+    ; price_decimals: int
+    ; leverage_available: int list
+    ; order_min: float
+  }
+
+
+  type parsed = (string, parsed_item) Hashtbl.t
+
+  let parse_item list_item = 
+    let (_exch_name, _data) = list_item in {
+    exchange_name = _exch_name
+    ; ws_name = _data.wsname
+    ; base = _data.base
+    ; quote = _data.quote
+    ; volume_decimals = _data.lot_decimals
+    ; price_decimals = _data.pair_decimals
+    ; leverage_available = _data.leverage_sell
+    ; order_min = match _data.ordermin with | Some v -> float_of_string v | None -> 0.0
+
+  };;
+
+  let parse data = List.map parse_item data;;
+
+
+  let add_to_table table list_item =
+    let open Core in 
+    let new_key = list_item.ws_name |> (String.tr ~target:'/' ~replacement:'-') in
+    (* let new_key = list_item.ws_name in *)
+    (* match Hashtbl.add table ~key:new_key ~data:list_item with
+      | `Duplicate -> Printf.printf "Key <%s> <%s> is already present\n" new_key list_item.ws_name
+      | `Ok -> () *)
+    Hashtbl.set table ~key:new_key ~data:list_item
+  
+  (* create a dict out of the parsed data which is a list *)
+  let tabulate data =
+    let open Core in 
+    let parsed_data = parse data in
+    let table = String.Table.create ~growth_allowed:true ~size:100 () in
+    let _result = List.iter ~f:(fun x -> add_to_table table x) parsed_data
+    in table
+    
+    (* let dict = Hashtbl.create 100 in List.iter (fun x -> Hashtbl.add dict (Printf.sprintf "%s-%s" x.base x.quote) x) parsed_data *)
+    
+
+  let make_req_uri = Uri.of_string "https://api.kraken.com/0/public/AssetPairs"
+
+
+  let fetch =
+    let uri = make_req_uri in
+    Client.get uri >>= fun (_, body) ->
+      let x = body |> Cohttp_lwt.Body.to_string in x
+      >|= fun x ->
+        Yojson.Basic.from_string x
+        |> nested["result";]
+        |> Yojson.Basic.to_string
+        |> expected_symbols_of_string
+        |> tabulate
 
 end

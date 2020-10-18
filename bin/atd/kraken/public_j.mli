@@ -5,9 +5,34 @@ type strnum = Public_t.strnum
 
 type trade_item = Public_t.trade_item
 
+type fee_item = Public_t.fee_item
+
+type symbol_item = Public_t.symbol_item = {
+  altname: string;
+  wsname: string;
+  aclass_base: string;
+  base: string;
+  aclass_quote: string;
+  quote: string;
+  lot: string;
+  pair_decimals: int;
+  lot_decimals: int;
+  lot_multiplier: int;
+  leverage_buy: int list;
+  leverage_sell: int list;
+  fees: fee_item list;
+  fees_maker: fee_item list;
+  fee_volume_currency: string;
+  margin_call: int;
+  margin_stop: int;
+  ordermin: string option
+}
+
 type ohlc_item = Public_t.ohlc_item
 
 type expected_trades = Public_t.expected_trades
+
+type expected_symbols = Public_t.expected_symbols
 
 type bid_item = Public_t.bid_item
 
@@ -76,6 +101,46 @@ val trade_item_of_string :
   string -> trade_item
   (** Deserialize JSON data of type {!trade_item}. *)
 
+val write_fee_item :
+  Bi_outbuf.t -> fee_item -> unit
+  (** Output a JSON value of type {!fee_item}. *)
+
+val string_of_fee_item :
+  ?len:int -> fee_item -> string
+  (** Serialize a value of type {!fee_item}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_fee_item :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> fee_item
+  (** Input JSON data of type {!fee_item}. *)
+
+val fee_item_of_string :
+  string -> fee_item
+  (** Deserialize JSON data of type {!fee_item}. *)
+
+val write_symbol_item :
+  Bi_outbuf.t -> symbol_item -> unit
+  (** Output a JSON value of type {!symbol_item}. *)
+
+val string_of_symbol_item :
+  ?len:int -> symbol_item -> string
+  (** Serialize a value of type {!symbol_item}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_symbol_item :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> symbol_item
+  (** Input JSON data of type {!symbol_item}. *)
+
+val symbol_item_of_string :
+  string -> symbol_item
+  (** Deserialize JSON data of type {!symbol_item}. *)
+
 val write_ohlc_item :
   Bi_outbuf.t -> ohlc_item -> unit
   (** Output a JSON value of type {!ohlc_item}. *)
@@ -115,6 +180,26 @@ val read_expected_trades :
 val expected_trades_of_string :
   string -> expected_trades
   (** Deserialize JSON data of type {!expected_trades}. *)
+
+val write_expected_symbols :
+  Bi_outbuf.t -> expected_symbols -> unit
+  (** Output a JSON value of type {!expected_symbols}. *)
+
+val string_of_expected_symbols :
+  ?len:int -> expected_symbols -> string
+  (** Serialize a value of type {!expected_symbols}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_expected_symbols :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> expected_symbols
+  (** Input JSON data of type {!expected_symbols}. *)
+
+val expected_symbols_of_string :
+  string -> expected_symbols
+  (** Deserialize JSON data of type {!expected_symbols}. *)
 
 val write_bid_item :
   Bi_outbuf.t -> bid_item -> unit

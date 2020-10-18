@@ -5,9 +5,34 @@ type strnum = Public_t.strnum
 
 type trade_item = Public_t.trade_item
 
+type fee_item = Public_t.fee_item
+
+type symbol_item = Public_t.symbol_item = {
+  altname: string;
+  wsname: string;
+  aclass_base: string;
+  base: string;
+  aclass_quote: string;
+  quote: string;
+  lot: string;
+  pair_decimals: int;
+  lot_decimals: int;
+  lot_multiplier: int;
+  leverage_buy: int list;
+  leverage_sell: int list;
+  fees: fee_item list;
+  fees_maker: fee_item list;
+  fee_volume_currency: string;
+  margin_call: int;
+  margin_stop: int;
+  ordermin: string option
+}
+
 type ohlc_item = Public_t.ohlc_item
 
 type expected_trades = Public_t.expected_trades
+
+type expected_symbols = Public_t.expected_symbols
 
 type bid_item = Public_t.bid_item
 
@@ -44,6 +69,36 @@ val validate_trade_item :
   Atdgen_runtime.Util.Validation.path -> trade_item -> Atdgen_runtime.Util.Validation.error option
   (** Validate a value of type {!trade_item}. *)
 
+val validate_fee_item :
+  Atdgen_runtime.Util.Validation.path -> fee_item -> Atdgen_runtime.Util.Validation.error option
+  (** Validate a value of type {!fee_item}. *)
+
+val create_symbol_item :
+  ?altname: string ->
+  ?wsname: string ->
+  ?aclass_base: string ->
+  ?base: string ->
+  ?aclass_quote: string ->
+  ?quote: string ->
+  ?lot: string ->
+  ?pair_decimals: int ->
+  ?lot_decimals: int ->
+  ?lot_multiplier: int ->
+  ?leverage_buy: int list ->
+  ?leverage_sell: int list ->
+  ?fees: fee_item list ->
+  ?fees_maker: fee_item list ->
+  ?fee_volume_currency: string ->
+  ?margin_call: int ->
+  ?margin_stop: int ->
+  ?ordermin: string ->
+  unit -> symbol_item
+  (** Create a record of type {!symbol_item}. *)
+
+val validate_symbol_item :
+  Atdgen_runtime.Util.Validation.path -> symbol_item -> Atdgen_runtime.Util.Validation.error option
+  (** Validate a value of type {!symbol_item}. *)
+
 val validate_ohlc_item :
   Atdgen_runtime.Util.Validation.path -> ohlc_item -> Atdgen_runtime.Util.Validation.error option
   (** Validate a value of type {!ohlc_item}. *)
@@ -51,6 +106,10 @@ val validate_ohlc_item :
 val validate_expected_trades :
   Atdgen_runtime.Util.Validation.path -> expected_trades -> Atdgen_runtime.Util.Validation.error option
   (** Validate a value of type {!expected_trades}. *)
+
+val validate_expected_symbols :
+  Atdgen_runtime.Util.Validation.path -> expected_symbols -> Atdgen_runtime.Util.Validation.error option
+  (** Validate a value of type {!expected_symbols}. *)
 
 val validate_bid_item :
   Atdgen_runtime.Util.Validation.path -> bid_item -> Atdgen_runtime.Util.Validation.error option

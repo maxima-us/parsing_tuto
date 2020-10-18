@@ -5,9 +5,34 @@ type strnum = Public_t.strnum
 
 type trade_item = Public_t.trade_item
 
+type fee_item = Public_t.fee_item
+
+type symbol_item = Public_t.symbol_item = {
+  altname: string;
+  wsname: string;
+  aclass_base: string;
+  base: string;
+  aclass_quote: string;
+  quote: string;
+  lot: string;
+  pair_decimals: int;
+  lot_decimals: int;
+  lot_multiplier: int;
+  leverage_buy: int list;
+  leverage_sell: int list;
+  fees: fee_item list;
+  fees_maker: fee_item list;
+  fee_volume_currency: string;
+  margin_call: int;
+  margin_stop: int;
+  ordermin: string option
+}
+
 type ohlc_item = Public_t.ohlc_item
 
 type expected_trades = Public_t.expected_trades
+
+type expected_symbols = Public_t.expected_symbols
 
 type bid_item = Public_t.bid_item
 
@@ -45,6 +70,21 @@ let validate_strnum = (
 let validate_trade_item = (
   fun _ _ -> None
 )
+let validate_fee_item = (
+  fun _ _ -> None
+)
+let validate__8 = (
+  fun _ _ -> None
+)
+let validate__7 = (
+  fun _ _ -> None
+)
+let validate__6 = (
+  fun _ _ -> None
+)
+let validate_symbol_item : _ -> symbol_item -> _ = (
+  fun _ _ -> None
+)
 let validate_ohlc_item = (
   fun _ _ -> None
 )
@@ -53,6 +93,12 @@ let validate__5 = (
 )
 let validate_expected_trades = (
   validate__5
+)
+let validate__9 = (
+  fun _ _ -> None
+)
+let validate_expected_symbols = (
+  validate__9
 )
 let validate_bid_item = (
   fun _ _ -> None
@@ -84,6 +130,46 @@ let validate_expected_ohlc = (
 let validate_expected_instrument : _ -> expected_instrument -> _ = (
   fun _ _ -> None
 )
+let create_symbol_item 
+  ?(altname = "")
+  ?(wsname = "")
+  ?(aclass_base = "")
+  ?(base = "")
+  ?(aclass_quote = "")
+  ?(quote = "")
+  ?(lot = "")
+  ?(pair_decimals = 0)
+  ?(lot_decimals = 0)
+  ?(lot_multiplier = 0)
+  ?(leverage_buy = [])
+  ?(leverage_sell = [])
+  ?(fees = [])
+  ?(fees_maker = [])
+  ?(fee_volume_currency = "")
+  ?(margin_call = 0)
+  ?(margin_stop = 0)
+  ?ordermin
+  () : symbol_item =
+  {
+    altname = altname;
+    wsname = wsname;
+    aclass_base = aclass_base;
+    base = base;
+    aclass_quote = aclass_quote;
+    quote = quote;
+    lot = lot;
+    pair_decimals = pair_decimals;
+    lot_decimals = lot_decimals;
+    lot_multiplier = lot_multiplier;
+    leverage_buy = leverage_buy;
+    leverage_sell = leverage_sell;
+    fees = fees;
+    fees_maker = fees_maker;
+    fee_volume_currency = fee_volume_currency;
+    margin_call = margin_call;
+    margin_stop = margin_stop;
+    ordermin = ordermin;
+  }
 let create_expected_orderbook 
   ~asks
   ~bids

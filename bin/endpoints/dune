@@ -4,5 +4,7 @@
     atd_instrument 
     atd_kraken
     lwt 
-    cohttp-lwt-unix yojson)
+    cohttp-lwt-unix yojson
+    core
+ )
 )

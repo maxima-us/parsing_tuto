@@ -36,6 +36,13 @@ let get_trades =
   fetch t_args >>= fun x -> Lwt_io.printf "first trade price / time : %f / %f \n" (let Price p = (List.nth x 0).avgPx in p) (let Timestamp t = (List.nth x 0).transactTime in t)
 
 
-let joins = Lwt.join([get_instrument; get_ohlc; get_orderbook; get_trades]);;
+let get_symbols = 
+  let open Symbols in
+  let open Core in
+  fetch >>= fun x -> Lwt_io.printf "Exchange name for XBT-USD : %s\n" (match String.Table.find x "XBT-USD" with | Some v -> v.exchange_name | None -> failwith "Key doesnt exist")
+  (* fetch >>= fun x -> Lwt_io.printf "WS name for first elem : %s\n" (let s = match List.nth x 0 with Some v -> v.ws_name | None -> "No ws name" in s) *)
+
+
+let joins = Lwt.join([get_instrument; get_ohlc; get_orderbook; get_trades; get_symbols]);;
 
 let _ = Lwt_main.run joins
