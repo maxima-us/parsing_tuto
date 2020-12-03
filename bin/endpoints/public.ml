@@ -1,6 +1,3 @@
-open Atd_instrument.Instrument_t;;
-
-
 (*============================================================*)
 (* BASE TYPES *)
 (*============================================================*)
@@ -38,6 +35,9 @@ struct
   type error = Error of string list option
  
 
+  (* get a field from a nested json struct *)
+    (* ex : {"result": "XXBTZUSD": {}, "error": []} *)
+    (* we could call `nested ["result", "XXTZUSD"]` *)
   let nested (ls: string list) (body: Yojson.Basic.t) =
     let open Yojson.Basic.Util in
     let rec iter (len: int) (json: Yojson.Basic.t) (depth: int) = 
@@ -66,13 +66,18 @@ module Instrument = struct
   include Types;;
   include Lwt;;
   include Cohttp_lwt_unix;;
-include Atd_instrument;;
+  include Atd_kraken.Public_j;;
+  include Atd_kraken.Public_t;;
+
+  type t = 
+    | API_ERR of string list
+    | Result of expected_instrument
 
 
   (* //TODO how do we specify variable string (pair) *)
   type response = {
     error: error;
-    result: expected option
+    result: expected_instrument option
   }
 
   (* Query args *)
@@ -102,7 +107,7 @@ include Atd_instrument;;
       ; prevTrdCount: count
   };;
 
-  type t = Instrument of parsed
+  (* type t = Instrument of parsed *)
 
   let parse symbol data = 
       let (askPrice, _, _) = data.ask in
@@ -170,7 +175,7 @@ include Atd_instrument;;
           Yojson.Basic.from_string x
           |> nested ["result"; let Pair x = args.symbol in x]
           |> Yojson.Basic.to_string
-          |> Instrument_j.expected_of_string
+          |> expected_instrument_of_string
           |> parse (let Pair x = args.symbol in x)
 
   (* //TODO CHECK IF ERROR IS EMPTY*)

@@ -8,7 +8,6 @@
     lwt
     str
     cohttp-lwt-unix
-    atd_instrument
     endpoints
     lwt.unix
   )
